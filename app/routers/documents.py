@@ -2,6 +2,7 @@ from fastapi import Body, APIRouter
 from ..models.document import Document
 import spacy
 from spacy.matcher import Matcher
+import time
 
 # Preflight load up NLP modules, vocabulary, and rules
 # More elaborate rule to capture more context for return string (passive subject) if detected
@@ -16,6 +17,7 @@ router = APIRouter()
 
 @router.post("/passives", tags=["documents"])
 async def postPassive(document: Document):
+  start = time.time()
   processedText = NLP(document.text)
   passiveSpans = matcher(processedText, as_spans=True)
   passivePhrases = []
@@ -23,4 +25,6 @@ async def postPassive(document: Document):
   for span in spacy.util.filter_spans(passiveSpans):
     phraseString = span.text
     passivePhrases.append([phraseString, span.start, span.end])
+  end = time.time()
+  print("/passives : " + str(round((end - start), 3)))
   return { "passives": list(passivePhrases) }
